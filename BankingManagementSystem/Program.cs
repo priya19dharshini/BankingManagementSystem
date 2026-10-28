@@ -9,9 +9,11 @@ class Program
     {
         var branchRepository = new BranchRepository();
         var customerRepository = new CustomerRepository();
+        var accountRepository = new AccountRepository();
 
         var branchService = new BranchService(branchRepository);
         var customerService = new CustomerService(customerRepository);
+        var accountService = new AccountService(accountRepository);
 
         while (true)
         {
@@ -51,6 +53,23 @@ class Program
                 case "5":
                     await SearchCustomer(customerService);
                     break;
+
+                case "6":
+                    await OpenAccount(accountService);
+                    break;
+
+                case "7":
+                    await ViewAccount(accountService);
+                    break;
+
+                case "0":
+                    Console.WriteLine("Thank you!");
+                    return;
+
+                default:
+                    Console.WriteLine("Invalid choice.");
+                    break;
+
 
             }
 
@@ -174,6 +193,59 @@ class Program
         Console.WriteLine($"Active: {customer.IsActive}");
     }
 
+    static async Task OpenAccount(AccountService service)
+    {
+        var account = new Account();
 
+        Console.Write("Enter customer ID: ");
+        if (!int.TryParse(Console.ReadLine(), out int customerId))
+        {
+            Console.WriteLine("Invalid customer ID.");
+            return;
+        }
+
+        account.CustomerId = customerId;
+
+        Console.Write("Enter branch ID: ");
+        if (!int.TryParse(Console.ReadLine(), out int branchId))
+        {
+            Console.WriteLine("Invalid branch ID.");
+            return;
+        }
+
+        account.BranchId = branchId;
+
+        Console.Write("Enter account type (Savings/Current): ");
+        account.AccountType = Console.ReadLine() ?? "";
+
+        var result = await service.OpenAccountAsync(account);
+
+        Console.WriteLine("Account opened successfully.");
+        Console.WriteLine($"Account ID: {result.AccountId}");
+        Console.WriteLine($"Account Number: {result.AccountNumber}");
+    }
+
+    static async Task ViewAccount(AccountService service)
+    {
+        Console.Write("Enter account ID: ");
+
+        if (!int.TryParse(Console.ReadLine(), out int id))
+        {
+            Console.WriteLine("Invalid account ID.");
+            return;
+        }
+
+        var account = await service.GetByIdAsync(id);
+
+        Console.WriteLine($"\nAccount ID: {account.AccountId}");
+        Console.WriteLine($"Account Number: {account.AccountNumber}");
+        Console.WriteLine($"Customer ID: {account.CustomerId}");
+        Console.WriteLine($"Branch ID: {account.BranchId}");
+        Console.WriteLine($"Account Type: {account.AccountType}");
+        Console.WriteLine($"Balance: {account.Balance:N2}");
+        Console.WriteLine($"Status: {account.Status}");
+    }
 }
+
+
 
