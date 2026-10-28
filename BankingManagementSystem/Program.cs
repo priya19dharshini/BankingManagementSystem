@@ -8,8 +8,10 @@ class Program
     static async Task Main(string[] args)
     {
         var branchRepository = new BranchRepository();
+        var customerRepository = new CustomerRepository();
 
         var branchService = new BranchService(branchRepository);
+        var customerService = new CustomerService(customerRepository);
 
         while (true)
         {
@@ -37,6 +39,19 @@ class Program
                 case "2":
                     await ViewBranches(branchService);
                     break;
+
+                case "3":
+                    await RegisterCustomer(customerService);
+                    break;
+
+                case "4":
+                    await ViewCustomers(customerService);
+                    break;
+
+                case "5":
+                    await SearchCustomer(customerService);
+                    break;
+
             }
 
         }
@@ -79,6 +94,86 @@ class Program
         if (branches.Count == 0)
             Console.WriteLine("No branches found.");
     }
+
+
+    static async Task RegisterCustomer(CustomerService service)
+    {
+        var customer = new Customer();
+
+        Console.Write("Enter full name: ");
+        customer.FullName = Console.ReadLine() ?? "";
+
+        Console.Write("Enter email: ");
+        customer.Email = Console.ReadLine() ?? "";
+
+        Console.Write("Enter phone number: ");
+        customer.Phone = Console.ReadLine() ?? "";
+
+        Console.Write("Enter date of birth (yyyy-MM-dd): ");
+        if (!DateTime.TryParse(Console.ReadLine(), out DateTime dob))
+        {
+            Console.WriteLine("Invalid date.");
+            return;
+        }
+
+        customer.DateOfBirth = dob;
+
+        Console.Write("Enter branch ID: ");
+        if (!int.TryParse(Console.ReadLine(), out int branchId))
+        {
+            Console.WriteLine("Invalid branch ID.");
+            return;
+        }
+
+        customer.BranchId = branchId;
+
+        int id = await service.RegisterAsync(customer);
+
+        Console.WriteLine($"Customer registered successfully. ID: {id}");
+    }
+
+    static async Task ViewCustomers(CustomerService service)
+    {
+        var customers = await service.GetAllAsync();
+
+        Console.WriteLine("\n--- Customer List ---");
+
+        foreach (var customer in customers)
+        {
+            Console.WriteLine(
+                $"ID: {customer.CustomerId} | " +
+                $"Name: {customer.FullName} | " +
+                $"Email: {customer.Email} | " +
+                $"Phone: {customer.Phone} | " +
+                $"Branch ID: {customer.BranchId} | " +
+                $"Active: {customer.IsActive}");
+        }
+
+        if (customers.Count == 0)
+            Console.WriteLine("No customers found.");
+    }
+
+    static async Task SearchCustomer(CustomerService service)
+    {
+        Console.Write("Enter customer ID: ");
+
+        if (!int.TryParse(Console.ReadLine(), out int id))
+        {
+            Console.WriteLine("Invalid customer ID.");
+            return;
+        }
+
+        var customer = await service.GetByIdAsync(id);
+
+        Console.WriteLine($"\nCustomer ID: {customer.CustomerId}");
+        Console.WriteLine($"Name: {customer.FullName}");
+        Console.WriteLine($"Email: {customer.Email}");
+        Console.WriteLine($"Phone: {customer.Phone}");
+        Console.WriteLine($"Date of Birth: {customer.DateOfBirth:yyyy-MM-dd}");
+        Console.WriteLine($"Branch ID: {customer.BranchId}");
+        Console.WriteLine($"Active: {customer.IsActive}");
+    }
+
 
 }
 
